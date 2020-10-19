@@ -24,6 +24,7 @@ const char* toU2(int a){
     char *tab;
     const char *wynik=toBin(a);
     tab = (char*)malloc(8);
+    if(a==-128) return "10000000";
     if(a>=0){
         b=strlen(toBin(a));
         for(int i=0;i<8-b;i++){
@@ -43,6 +44,6 @@ const char* toU2(int a){
     }
 }
 int main(){
-    printf("%s\n", toU2(-2));
+    printf("%s\n", toU2(-127));
     return 0;
 }

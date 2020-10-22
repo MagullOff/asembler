@@ -2,7 +2,7 @@
 #include<string.h>
 #include<stdlib.h>
 #define MAX_LEN_ETYKIETA 30
-#define MAX_LEN_LINE 120
+#define MAX_LEN_LINE 400
 #define MAX_ROW_AMOUNT 100
 int line_amount;
 int mem_line_amount;
@@ -49,7 +49,7 @@ struct ORDER_ROW divide_order_row(char *row){
     int row_len = strlen(row);
     int i=0;
     int j=0;
-    clear_mem_temp();
+    clear_or_temp();
     strcpy(or_temp.line,row);
     if(row[0]!=' '){
         while(row[i]!=' '){
@@ -75,7 +75,7 @@ struct MEMORY_ROW divide_memory_row(char *row){
     int i=0;
     int j=0;
     int q=0;
-    clear_or_temp();
+    clear_mem_temp();
     strcpy(mem_temp.line,row);
     if(row[0]!=' '){
         while(row[i]!=' '){
@@ -119,14 +119,17 @@ void wczytaj(char *fileName){
     FILE * sourceFile;
     sourceFile = fopen(fileName,"r");
     char line[MAX_LEN_LINE];
+        //printf("dupa");
     for(int i=0;!feof(sourceFile);i++){
         strncpy(line, "",strlen(line));
         fgets(line,MAX_LEN_LINE,sourceFile);
-        if(line[0]=='\n'){break;} 
+        if(line[0]=='\n') break;
         MEMORY_ARRAY[i] = divide_memory_row(line);
         line_amount=i+1;
         mem_line_amount=i+1;
     }
+    //printf("dupa");
+    /*
     line_amount++;
     //printf("%d\n",line_amount);
     for(int i=0;!feof(sourceFile);i++){
@@ -134,7 +137,7 @@ void wczytaj(char *fileName){
         fgets(line,MAX_LEN_LINE,sourceFile);
         ORDER_ARRAY[i] = divide_order_row(line);
         line_amount++;
-    }
+    }*/
     return;
 }
 char *toBin(int a){
@@ -154,6 +157,7 @@ char *toBin(int a){
     }
     return tab;
 }
+
 char *toU2(int a){
     int b;
     char *tab;
@@ -188,11 +192,11 @@ int main(){
     }
     
     printf("============================\n");
-    
-    for(int i=0;i<line_amount-mem_line_amount-1;i++){
-        printf("etykieta:%s rozkaz:%s\n",ORDER_ARRAY[i].etykieta,ORDER_ARRAY[i].rozkaz);
+    /*
+    for(int i=0;i<line_amount-mem_line_amount;i++){
+        printf("%s///%s///\n",ORDER_ARRAY[i].etykieta,ORDER_ARRAY[i].rozkaz);
     }
-    
+    */
 
     return 0;
 }

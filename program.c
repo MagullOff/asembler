@@ -10,7 +10,7 @@
 
 
 int main(int argc, char** argv) {
-    FILE* input = NULL;
+    FILE* input = NULL; //sprawdzenie poprawnoœci œcie¿ki lub wczytanie jej
     char path[MAX_PATH_LEN];
     char* outName = "output.txt";
     if (argc == 1) {
@@ -35,9 +35,9 @@ int main(int argc, char** argv) {
             exit(EXIT_FAILURE);
         }
     }
-    parse(path);
-    getOffSets();
-    writeOutputToFile();
+    parse(path); //funkcja dziel¹ca kod na poszczególne fragmenty
+    getOffSets(); //funkcja obliczaj¹ca przesuniêcia dla elementów kodu zawieraj¹cych etykiety
+    writeOutputToFile(); //funkcja wypisuj¹ca kod maszynowy do pliku
     return 0;
 }
 

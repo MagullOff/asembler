@@ -1,202 +1,151 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#define MAX_LEN_ETYKIETA 30
-#define MAX_LEN_LINE 400
-#define MAX_ROW_AMOUNT 100
-int line_amount;
-int mem_line_amount;
-char out[10];
-struct MEMORY_ROW{
-    char etykieta[MAX_LEN_ETYKIETA];
-    char rozkaz[3];
-    int amount;
-    char amountC[10];
-    int value;
-    char valueC[10];
-    char line[MAX_LEN_ETYKIETA];
-    char valueOut[20];
-}MEMORY_ARRAY[MAX_ROW_AMOUNT];
+#include "parser.h"
+#if defined( _WIN32 )
+#pragma warning(disable:4996)
+#endif
 
-struct ORDER_ROW{
-    char etykieta[MAX_LEN_ETYKIETA];
-    char rozkaz[3];
-    char argument1[MAX_LEN_ETYKIETA];
-    char argument2[MAX_LEN_ETYKIETA];
-    char line[MAX_LEN_LINE];
-}ORDER_ARRAY[MAX_ROW_AMOUNT];
+void writeOutput() {
+    int i = 0;
+    int j = 0;
+    char t[15];
+    char t2[6];
+    for (; i < memRowAmount; i++) {
+        j = 0;
+        for (; j < ROW_ARRAY[i].amount; j++) {
+            if (ROW_ARRAY[i].order[1] == 'S') {
+                printf("~~ ~~ ~~ ~~\n");
+            }
+            else {
+                sprintf(t, "%08X\n", ROW_ARRAY[i].value);
+                printf("%c%c %c%c %c%c %c%c\n", t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
+            }
+        }
+    }
+    puts("");
+    for (i = memRowAmount; i < lineAmount; i++) {
+            if (ROW_ARRAY[i].byteAmount == 4) {
+                printf("%02X %01X%01X ", ROW_ARRAY[i].hex, ROW_ARRAY[i].arg1VAL, ROW_ARRAY[i].arg2VAL);
+                sprintf(t2, "%04X", ROW_ARRAY[i].move);
+                printf("%c%c %c%c\n", t2[0], t2[1], t2[2], t2[3]);
+            }
 
-struct MEMORY_ROW mem_temp;
-struct ORDER_ROW or_temp;
-void clear_mem_temp(){
-    strncpy(mem_temp.etykieta,"",strlen(mem_temp.etykieta));
-    strncpy(mem_temp.rozkaz,"",strlen(mem_temp.rozkaz));
-    strncpy(mem_temp.line,"",strlen(mem_temp.line));
-    strncpy(mem_temp.valueC,"",strlen(mem_temp.valueC));
-    strncpy(mem_temp.amountC,"",strlen(mem_temp.amountC));
+            else
+                printf("%02X %01X%01X\n", ROW_ARRAY[i].hex, ROW_ARRAY[i].arg1VAL, ROW_ARRAY[i].arg2VAL);
+        }
+        return;
+}
+
+void writeOutputToFile() {
+    int i = 0;
+    int j = 0;
+    char t[15];
+    char t2[6];
+    FILE* outputFile;
+    outputFile = fopen("output.txt", "w");
+    for (; i < memRowAmount; i++) {
+        j = 0;
+        for (; j < ROW_ARRAY[i].amount; j++) {
+            if (ROW_ARRAY[i].order[1] == 'S') {
+                fprintf(outputFile, "~~ ~~ ~~ ~~\n");
+            }
+            else {
+                sprintf(t, "%08X\n", ROW_ARRAY[i].value);
+                fprintf(outputFile, "%c%c %c%c %c%c %c%c\n", t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
+            }
+        }
+    }
+    fprintf(outputFile, "\n");
+    for (i = memRowAmount; i < lineAmount; i++) {
+        if (ROW_ARRAY[i].byteAmount == 4) {
+            fprintf(outputFile, "%02X %01X%01X ", ROW_ARRAY[i].hex, ROW_ARRAY[i].arg1VAL, ROW_ARRAY[i].arg2VAL);
+            sprintf(t2, "%04X", ROW_ARRAY[i].move);
+            fprintf(outputFile, "%c%c %c%c\n", t2[0], t2[1], t2[2], t2[3]);
+        }else fprintf(outputFile, "%02X %01X%01X\n", ROW_ARRAY[i].hex, ROW_ARRAY[i].arg1VAL, ROW_ARRAY[i].arg2VAL);
+    }
     return;
 }
-void clear_or_temp(){
-    strncpy(or_temp.etykieta,"",strlen(or_temp.etykieta));
-    strncpy(or_temp.rozkaz,"",strlen(or_temp.rozkaz));
-    strncpy(or_temp.line,"",strlen(or_temp.line));
-    strncpy(or_temp.argument1,"",strlen(or_temp.argument1));
-    strncpy(or_temp.argument2,"",strlen(or_temp.argument2));
+
+void getOffSets() {
+    int i = memRowAmount;
+    int j;
+    for (; i < lineAmount; i++) {
+        if (ROW_ARRAY[i].order[0] == 'J' && !isDigit(ROW_ARRAY[i].arg1[0])) {
+            ROW_ARRAY[i].move = 0;
+            for (j = memRowAmount; j < lineAmount; j++) {
+                if (strcmp(ROW_ARRAY[j].label, ROW_ARRAY[i].arg1) == 0) {
+                    break;
+                }
+                else {
+                    ROW_ARRAY[i].move += ROW_ARRAY[j].byteAmount;
+                }
+            }
+        }
+        if (ROW_ARRAY[i].order[0] != 'J' && ROW_ARRAY[i].order[1] != 'R' && !isDigit(ROW_ARRAY[i].arg2[0])) {
+            ROW_ARRAY[i].move = 0;
+            for (j = 0; j < memRowAmount; j++) {
+                if (strcmp(ROW_ARRAY[j].label, ROW_ARRAY[i].arg2) == 0) {
+                    break;
+                }
+                else {
+                    ROW_ARRAY[i].move += ROW_ARRAY[j].amount * 4;
+                }
+            }
+        }
+
+    }
     return;
 }
-struct ORDER_ROW divide_order_row(char *row){
-    
-    int row_len = strlen(row);
-    int i=0;
-    int j=0;
-    clear_or_temp();
-    strcpy(or_temp.line,row);
-    if(row[0]!=' '){
-        while(row[i]!=' '){
-            or_temp.etykieta[i]=row[i];
-            i++;
-        }
-    }
-    while(row[i]==' ') i++;
-    while(row[i]!=' '){
-        or_temp.rozkaz[j]=row[i];
-        j++;
-        i++;
-    }
-    while(row[i]==' ') i++;
-    j=0;
-    
 
-    return or_temp;
-}
-struct MEMORY_ROW divide_memory_row(char *row){
-    
-    int row_len = strlen(row);
-    int i=0;
-    int j=0;
-    int q=0;
-    clear_mem_temp();
-    strcpy(mem_temp.line,row);
-    if(row[0]!=' '){
-        while(row[i]!=' '){
-            mem_temp.etykieta[i]=row[i];
-            i++;
+int main(int argc, char** argv) {
+    FILE* input = NULL;
+    char path[MAX_PATH_LEN];
+    char* outName = "output.txt";
+    if (argc == 1) {
+        printf("Brak sciezki!\nPodaj sciezke:\n");
+        if (scanf("%s", &path, MAX_PATH_LEN) == 0)
+        {
+            perror("");
+            exit(EXIT_FAILURE);
         }
     }
-    while(row[i]==' ') i++;
-    while(row[i]!=' '){
-        mem_temp.rozkaz[j]=row[i];
-        j++;
-        i++;
-    }
-    while(row[i]==' ') i++;
-    j=0;
-    if(row[i]=='I'){
-        mem_temp.amount=1;
-        mem_temp.amountC[0]='1';
-    } 
-    else{
-        while(row[i]!='*'){
-            mem_temp.amountC[j]=row[i];
-            i++;
-            j++;
+    else {
+        if (strcpy(path, MAX_PATH_LEN * sizeof(char), argv[1]) != 0) {
+            perror("");
+            exit(EXIT_FAILURE);
         }
     }
-    mem_temp.amount=atoi(mem_temp.amountC);
-    while(row[i]!='R') i++;
-    if(mem_temp.rozkaz[1]=='C'){
-        i+=2;
-        while(row[i]!=')'){
-            mem_temp.valueC[q]=row[i];
-            i++;
-            q++;
-        }
-        mem_temp.value=atoi(mem_temp.valueC);
-    }else mem_temp.value=128;
-    return mem_temp;
-}
-void wczytaj(char *fileName){
-    FILE * sourceFile;
-    sourceFile = fopen(fileName,"r");
-    char line[MAX_LEN_LINE];
-        //printf("dupa");
-    for(int i=0;!feof(sourceFile);i++){
-        strncpy(line, "",strlen(line));
-        fgets(line,MAX_LEN_LINE,sourceFile);
-        if(line[0]=='\n') break;
-        MEMORY_ARRAY[i] = divide_memory_row(line);
-        line_amount=i+1;
-        mem_line_amount=i+1;
-    }
-    //printf("dupa");
-    /*
-    line_amount++;
-    //printf("%d\n",line_amount);
-    for(int i=0;!feof(sourceFile);i++){
-        strncpy(line, "",strlen(line));
-        fgets(line,MAX_LEN_LINE,sourceFile);
-        ORDER_ARRAY[i] = divide_order_row(line);
-        line_amount++;
-    }*/
-    return;
-}
-char *toBin(int a){
-    char *tab;
-    int b;
-    int pom;
-    tab = (char*)malloc(8);
-    for(int i=0;a>0;i++){
-        tab[i]=a%2+'0';
-        a/=2;
-        b=i;
-    }
-    for(int i=0;i<b/2;i++){
-        pom=tab[i];
-        tab[i]=tab[b-i];
-        tab[b-i]=pom;
-    }
-    return tab;
-}
 
-char *toU2(int a){
-    int b;
-    char *tab;
-    const char *wynik=toBin(a);
-    tab = (char*)malloc(8);
-    if(a==128) return "~~~~~~~~";
-    if(a==-128) return "10000000";
-    if(a>=0){
-        b=strlen(toBin(a));
-        for(int i=0;i<8-b;i++){
-            tab[i]='0';
+    while (fopen(&input, path, "r") != 0) {
+        printf("Plik %s nie istnieje!\nPodaj sciezke ponownie:\n", path);
+        if (scanf("%s", &path, MAX_PATH_LEN) == 0) {
+            perror("");
+            exit(EXIT_FAILURE);
         }
-        tab = strcat(tab,wynik);
-        return tab;
-    }else{
-        tab[0]='1';
-        b=strlen(toBin(a+128));
-        wynik=toBin(a+128);
-        for(int i=1;i<8-b;i++){
-            tab[i]='0';
-        }
-        tab = strcat(tab,wynik);
-        return tab;
     }
-}
-int main(){
+    parse(path);
+    getOffSets();
+    writeOutputToFile();
+    puts("wypluwam kod maszynowy");
+    writeOutput();
     
-    wczytaj("asembler.txt");
-    
-    for(int i=0;i<mem_line_amount;i++){
-        printf("etykieta:%s rozkaz:%s ilosc:%d out:%s\n",MEMORY_ARRAY[i].etykieta,MEMORY_ARRAY[i].rozkaz,MEMORY_ARRAY[i].amount,toU2(MEMORY_ARRAY[i].value));
+    puts("");
+    i = 0;
+    puts("wypluwam efekt parsera");
+    for (; i < memRowAmount; i++) {
+        printf("%2d || %20s || %2s || %4d || %4d ||\n", i, ROW_ARRAY[i].label, ROW_ARRAY[i].order, ROW_ARRAY[i].amount, ROW_ARRAY[i].value);
     }
-    
-    printf("============================\n");
-    /*
-    for(int i=0;i<line_amount-mem_line_amount;i++){
-        printf("%s///%s///\n",ORDER_ARRAY[i].etykieta,ORDER_ARRAY[i].rozkaz);
-    }
-    */
 
+    puts("");
+    for (; i < lineAmount; i++) {
+        if (ROW_ARRAY[i].byteAmount == 4)
+            printf("%2d || %20s || %2s || %20s ||%20s||\n", i, ROW_ARRAY[i].label, ROW_ARRAY[i].order, ROW_ARRAY[i].arg1, ROW_ARRAY[i].arg2);
+        else
+            printf("%2d || %20s || %2s || %20s ||%20s||\n", i, ROW_ARRAY[i].label, ROW_ARRAY[i].order, ROW_ARRAY[i].arg1, ROW_ARRAY[i].arg2);
+    }
+    
+    
+    
     return 0;
 }

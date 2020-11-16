@@ -2,13 +2,12 @@
 #include<string.h>
 #include<stdlib.h>
 #include "parser.h"
-#include "offset.h"
 #if defined( _WIN32 )
 #pragma warning(disable:4996)
 #endif
 
 
-void getOffSets() {
+void getOffSets() { //funkcja obliczaj¹ca przesuniêcia dla elementów kodu zawieraj¹cych etykiety
     int i = memRowAmount;
     int j;
     for (; i < lineAmount; i++) {

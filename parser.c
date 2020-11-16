@@ -1,13 +1,12 @@
 ﻿#include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#include "parser.h";
-#include "order.h"
+#include "parser.h"
 #if defined( _WIN32 )
 #pragma warning(disable:4996)
 #endif
 
-
+void getOrderHex(char c1, char c2);
 int isDigit(char c) { //sprawdza czy dany char to cyfra
     if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9') return 1;
     return 0;
@@ -67,8 +66,8 @@ struct ROW parse_memory_row(char* row) { //funkcja dzieląca linie sekcji danych
     char amountC[10];
     char valueC[10];
     tempRow.type = 0;
-    strcpy(amountC, "", strlen(amountC));
-    strcpy(valueC, "", strlen(valueC));
+    memset(amountC, 0, sizeof(amountC));
+    memset(valueC, 0, sizeof(valueC));
     clear_temp();
     strcpy(tempRow.line, row);
     if (row[0] != ' ' && row[i] != '\t') { //jeśli etykieta istnieje, wczytujemy ją
@@ -137,7 +136,7 @@ struct ROW parse_order_row(char* row) { //funkcja dzieląca linie sekcji rozkaz�
     //poniżej przypisujemy argumenty w postaci łańcuchów znaków do opowiednich pól
     if (tempRow.order[0] == 'J') {
         j = 0;
-        while (row[i] != ' ' && row[i] != '\n' && row[i] != '\0' && row[i] != '\t') {
+        while (row[i] != ' ' && row[i] != '\n' && row[i] != '\0' && row[i] != '\t' && row[i] != '\\') {
             tempRow.arg1[j] = row[i];
             j++;
             i++;
@@ -154,7 +153,7 @@ struct ROW parse_order_row(char* row) { //funkcja dzieląca linie sekcji rozkaz�
 
         j = 0;
         while (row[i] == ',' || row[i] == ' ') i++;
-        while (row[i] != ' ' && row[i] != '\n' && row[i] != '\0' && row[i] != '\t') {
+        while (row[i] != ' ' && row[i] != '\n' && row[i] != '\0' && row[i] != '\t' && row[i] != '\\') {
             tempRow.arg2[j] = row[i];
             j++;
             i++;

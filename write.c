@@ -1,8 +1,7 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#include "parser.h";
-#include "write.h"
+#include "parser.h"
 #if defined( _WIN32 )
 #pragma warning(disable:4996)
 #endif
@@ -16,8 +15,8 @@ void writeOutputToFile() { //funkcja wypisuj¹ca kod maszynowy do pliku
     FILE* outputFile;
     outputFile = fopen("output.txt", "w");
     for (; i < memRowAmount; i++) {
-        j = 0;
-        for (; j < ROW_ARRAY[i].amount; j++) {
+        
+        for (j = 0; j < ROW_ARRAY[i].amount; j++) {
             if (ROW_ARRAY[i].order[1] == 'S') { // jeœli derektywa to DS wypisz "~~ ~~ ~~ ~~"
                 fprintf(outputFile, "~~ ~~ ~~ ~~\n");
             }

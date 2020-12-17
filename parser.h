@@ -1,36 +1,36 @@
-#pragma once
+ï»¿#pragma once
 #define MAX_LEN_ETYKIETA 20
 #define MAX_LEN_LINE 100
 #define MAX_ROW_AMOUNT 1000
 #define MAX_PATH_LEN 30
-char row_string[MAX_ROW_AMOUNT][MAX_LEN_LINE]; //tablica przechowuj¹ca w jednym rzêdzie jedn¹ linie kodu jako ³añcuch znaków
-int lineAmount; //iloœæ linii
-int memRowAmount; //iloœæ linii w sekcji danych
-int orderRowAmount; //iloœæ linii w sekcji rozkazów
-struct ROW { //struct ten reprezentuje ka¿d¹ linie programu i przechowywane s¹ w nim jej czêœci
+char row_string[MAX_ROW_AMOUNT][MAX_LEN_LINE]; //tablica przechowujï¿½ca w jednym rzï¿½dzie jednï¿½ linie kodu jako ï¿½aï¿½cuch znakï¿½w
+int lineAmount; //iloï¿½ï¿½ linii
+int memRowAmount; //iloï¿½ï¿½ linii w sekcji danych
+int orderRowAmount; //iloï¿½ï¿½ linii w sekcji rozkazï¿½w
+struct ROW { //struct ten reprezentuje kaï¿½dï¿½ linie programu i przechowywane sï¿½ w nim jej czï¿½ci
     int type; //0-dane 1-rozkazy
     char label[MAX_LEN_ETYKIETA];
     char order[5];
     char line[MAX_LEN_LINE];
 
     //rozkazy
-    char arg1[MAX_LEN_ETYKIETA]; //³añcuch pierwszego argumentu
-    char arg2[MAX_LEN_ETYKIETA]; //³añcuch drugiego argumentu
-    int byteAmount; //jak du¿o miejsca zajmuje kod maszynowy rozkazu
+    char arg1[MAX_LEN_ETYKIETA]; //ï¿½aï¿½cuch pierwszego argumentu
+    char arg2[MAX_LEN_ETYKIETA]; //ï¿½aï¿½cuch drugiego argumentu
+    int byteAmount; //jak duï¿½o miejsca zajmuje kod maszynowy rozkazu
     int hex; //kod rozkazu
-    int arg1VAL; //wartoœæ pierwszego argumentu jako liczba
-    int arg2VAL; //wartoœæ drugiego argumentu jako liczba
-    int move; //przesuniêcie
+    int arg1VAL; //wartoï¿½ï¿½ pierwszego argumentu jako liczba
+    int arg2VAL; //wartoï¿½ï¿½ drugiego argumentu jako liczba
+    int move; //przesuniï¿½cie
 
     //dane
-    int amount; //iloœæ zadeklarowanych zmiennych
-    int value; // wartoœæ w przypadku derektywy DC
-    int offset; //iloœæ pamiêciu zabranej przez element
+    int amount; //iloï¿½ï¿½ zadeklarowanych zmiennych
+    int value; // wartoï¿½ï¿½ w przypadku derektywy DC
+    int offset; //iloï¿½ï¿½ pamiï¿½ciu zabranej przez element
 
 }ROW_ARRAY[MAX_ROW_AMOUNT];
-struct ROW tempRow; 
-void clear_temp();  //"czyœcimy" struct tempRow który jest zwracany w funkcjach parsuj¹cych linie. Bez tego w niektórych przypadkach pojawiaj¹ siê b³êdy
-struct ROW parse_memory_row(char* row); //funkcja dziel¹ca linie sekcji danych na poszczególne elementy
-struct ROW parse_order_row(char* row); //funkcja dziel¹ca linie sekcji rozkazów na poszczególne elementy
-void read_file(char* fileName); //funkcja wczytuj¹ca zawartoœæ pliku do tablicy 2-wymiarowej
-void parse(char* fileName); 
+struct ROW tempRow;
+void clear_temp();  //"czyï¿½cimy" struct tempRow ktï¿½ry jest zwracany w funkcjach parsujï¿½cych linie. Bez tego w niektï¿½rych przypadkach pojawiajï¿½ siï¿½ bï¿½ï¿½dy
+struct ROW parse_memory_row(char* row); //funkcja dzielï¿½ca linie sekcji danych na poszczegï¿½lne elementy
+struct ROW parse_order_row(char* row); //funkcja dzielï¿½ca linie sekcji rozkazï¿½w na poszczegï¿½lne elementy
+void read_file(char* fileName); //funkcja wczytujï¿½ca zawartoï¿½ï¿½ pliku do tablicy 2-wymiarowej
+void parse(char* fileName);

@@ -15,7 +15,7 @@ void writeOutputToFile() { //funkcja wypisuj¹ca kod maszynowy do pliku
     FILE* outputFile;
     outputFile = fopen("output.txt", "w");
     for (; i < memRowAmount; i++) {
-        
+
         for (j = 0; j < ROW_ARRAY[i].amount; j++) {
             if (ROW_ARRAY[i].order[1] == 'S') { // jeœli derektywa to DS wypisz "~~ ~~ ~~ ~~"
                 fprintf(outputFile, "~~ ~~ ~~ ~~\n");
@@ -35,5 +35,6 @@ void writeOutputToFile() { //funkcja wypisuj¹ca kod maszynowy do pliku
         }
         else fprintf(outputFile, "%02X %01X%01X\n", ROW_ARRAY[i].hex, ROW_ARRAY[i].arg1VAL, ROW_ARRAY[i].arg2VAL); //jeœli rozkaz zajmuje 2 bajty
     }
+    fclose(outputFile);
     return;
 }

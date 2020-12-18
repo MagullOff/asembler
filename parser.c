@@ -1,4 +1,4 @@
-ï»¿#include<stdio.h>
+#include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
 #include "parser.h"
@@ -6,23 +6,25 @@
 #pragma warning(disable:4996)
 #endif
 
+void getOffSets(); //funkcja obliczaj¹ca przesuniêcia dla elementów kodu zawieraj¹cych etykiety
 void getOrderHex(char c1, char c2);
 int isDigit(char c) { //sprawdza czy dany char to cyfra
     if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9') return 1;
     return 0;
 }
-void read_file(char* fileName) { //odczytuje plik i kaÅ¼dÄ… liniÄ™ wstawia do osobnego rzÄ™du w kwadratowej tablicy charÃ³w
+void read_file(char* fileName) { //odczytuje plik i ka¿d¹ liniê wstawia do osobnego rzêdu w kwadratowej tablicy charów
     char temp_string[MAX_LEN_LINE];
     int i = 0;
     FILE* sourceFile;
     sourceFile = fopen(fileName, "r");
     while (fgets(temp_string, sizeof temp_string, sourceFile) != NULL) {
-        if (temp_string[0] != '/') { //nie chcemy braÄ‡ pod uwagÄ™ komentarzy
+        if (temp_string[0] != '/') { //nie chcemy braæ pod uwagê komentarzy
             strcpy(row_string[i], temp_string);
             i += 1;
         }
         lineAmount = i;
     }
+    fclose(sourceFile);
     return;
 }
 void parse(char* fileName) {
@@ -31,7 +33,7 @@ void parse(char* fileName) {
     int z;
     read_file(fileName);
     while (row_string[i][0] != '\n') {
-        ROW_ARRAY[i] = parse_memory_row(row_string[i]); //dzielimy kaÅ¼dÄ… linie aÅ¼ do pierwszej pustej ktÃ³ra oznacza koniec sekcji danych
+        ROW_ARRAY[i] = parse_memory_row(row_string[i]); //dzielimy ka¿d¹ linie a¿ do pierwszej pustej która oznacza koniec sekcji danych
         i++;
     }
     memRowAmount = i;
@@ -39,17 +41,17 @@ void parse(char* fileName) {
     j = i;
     z = i;
     i++;
-    
+
     while (i < lineAmount) {
-        ROW_ARRAY[i - 1] = parse_order_row(row_string[i]); //dzielimy kadÅ¼dÄ… linie kodu do jego koÅ„ca (jest to sekcja rozkazÃ³w)
+        ROW_ARRAY[i - 1] = parse_order_row(row_string[i]); //dzielimy kad¿d¹ linie kodu do jego koñca (jest to sekcja rozkazów)
         i++;
     }
     lineAmount--;
-    
+    getOffSets(); //funkcja obliczaj¹ca przesuniêcia dla elementów kodu zawieraj¹cych etykiety
     return;
 }
 
-void clear_temp() { //"czyÅ›cimy" struct tempRow ktÃ³ry jest zwracany w funkcjach parsujÄ…cych linie. Bez tego w niektÃ³rych przypadkach pojawiajÄ… siÄ™ bÅ‚Ä™dy
+void clear_temp() { //"czyœcimy" struct tempRow który jest zwracany w funkcjach parsuj¹cych linie. Bez tego w niektórych przypadkach pojawiaj¹ siê b³êdy
     strncpy(tempRow.label, "", strlen(tempRow.label));
     strncpy(tempRow.order, "", strlen(tempRow.order));
     strncpy(tempRow.line, "", strlen(tempRow.line));
@@ -58,7 +60,7 @@ void clear_temp() { //"czyÅ›cimy" struct tempRow ktÃ³ry jest zwracany w funkcjac
     return;
 }
 
-struct ROW parse_memory_row(char* row) { //funkcja dzielÄ…ca linie sekcji danych na poszczegÃ³lne elementy
+struct ROW parse_memory_row(char* row) { //funkcja dziel¹ca linie sekcji danych na poszczególne elementy
     int row_len = strlen(row);
     int i = 0;
     int j = 0;
@@ -70,21 +72,21 @@ struct ROW parse_memory_row(char* row) { //funkcja dzielÄ…ca linie sekcji danych
     memset(valueC, 0, sizeof(valueC));
     clear_temp();
     strcpy(tempRow.line, row);
-    if (row[0] != ' ' && row[i] != '\t') { //jeÅ›li etykieta istnieje, wczytujemy jÄ…
+    if (row[0] != ' ' && row[i] != '\t') { //jeœli etykieta istnieje, wczytujemy j¹
         while (row[i] != ' ' && row[i] != '\t') {
             tempRow.label[i] = row[i];
             i++;
         }
     }
     j = 0;
-    while (row[i] == ' ' ||  row[i] == '\t') i++;
- 
+    while (row[i] == ' ' || row[i] == '\t') i++;
+
     tempRow.order[0] = row[i]; //wczytujemy derektywe
     tempRow.order[1] = row[++i];
     i++;
     while (row[i] == ' ' || row[i] == '\t') i++;
     j = 0;
-    //sprawdzamy czy deklarujemy wiÄ™cej niÅ¼ jednÄ… zmiennÄ… oraz jakie sÄ… jej ewentualne wartoÅ›ci w przypadku derektywy DC
+    //sprawdzamy czy deklarujemy wiêcej ni¿ jedn¹ zmienn¹ oraz jakie s¹ jej ewentualne wartoœci w przypadku derektywy DC
     if (row[i] == 'I') {
         tempRow.amount = 1;
         amountC[0] = '1';
@@ -112,7 +114,7 @@ struct ROW parse_memory_row(char* row) { //funkcja dzielÄ…ca linie sekcji danych
     return tempRow;
 }
 
-struct ROW parse_order_row(char* row) { //funkcja dzielÄ…ca linie sekcji rozkazÃ³w na poszczegÃ³lne elementy
+struct ROW parse_order_row(char* row) { //funkcja dziel¹ca linie sekcji rozkazów na poszczególne elementy
     int row_len = strlen(row);
     int i = 0;
     int j = 0;
@@ -122,7 +124,7 @@ struct ROW parse_order_row(char* row) { //funkcja dzielÄ…ca linie sekcji rozkazÃ
     tempRow.type = 1;
     clear_temp();
     strcpy(tempRow.line, row);
-    if (row[0] != ' ' && row[i] != '\t') {  //jeÅ›li etykieta istnieje, wczytujemy jÄ…
+    if (row[0] != ' ' && row[i] != '\t') {  //jeœli etykieta istnieje, wczytujemy j¹
         while (row[i] != ' ' && row[i] != '\t') {
             tempRow.label[i] = row[i];
             i++;
@@ -133,7 +135,7 @@ struct ROW parse_order_row(char* row) { //funkcja dzielÄ…ca linie sekcji rozkazÃ
     tempRow.order[1] = row[++i];
     i++;
     while (row[i] == ' ' || row[i] == '\t') i++;
-    //poniÅ¼ej przypisujemy argumenty w postaci Å‚aÅ„cuchÃ³w znakÃ³w do opowiednich pÃ³l
+    //poni¿ej przypisujemy argumenty w postaci ³añcuchów znaków do opowiednich pól
     if (tempRow.order[0] == 'J') {
         j = 0;
         while (row[i] != ' ' && row[i] != '\n' && row[i] != '\0' && row[i] != '\t' && row[i] != '\\') {
@@ -163,7 +165,7 @@ struct ROW parse_order_row(char* row) { //funkcja dzielÄ…ca linie sekcji rozkazÃ
     getOrderHex(tempRow.order[0], tempRow.order[1]); //przypisujemy odpowieni kod rozkazu
     if (tempRow.order[0] != 'J') tempRow.arg1VAL = atoi(tempRow.arg1);
     else  tempRow.arg1VAL = 0;
-    //przypisujemy odpowiedznie wartoÅ›ci liczbowe do argumentÃ³w nie bÄ™dÄ…cych etykietami
+    //przypisujemy odpowiedznie wartoœci liczbowe do argumentów nie bêd¹cych etykietami
     if (tempRow.order[1] == 'R') tempRow.arg2VAL = atoi(tempRow.arg2);
     if (tempRow.order[0] == 'J') {
         tempRow.arg2VAL = 14;
@@ -172,7 +174,7 @@ struct ROW parse_order_row(char* row) { //funkcja dzielÄ…ca linie sekcji rozkazÃ
                 arg2C[j] = tempRow.arg1[j];
             }
             tempRow.move = atoi(arg2C);
-           
+
 
         }
         else {
@@ -195,9 +197,9 @@ struct ROW parse_order_row(char* row) { //funkcja dzielÄ…ca linie sekcji rozkazÃ
             tempRow.arg2VAL = atoi(moveC);
         }
         else {
-            tempRow.move = 0; 
+            tempRow.move = 0;
         }
-        
+
     }
 
     if (tempRow.order[1] == 'R') tempRow.byteAmount = 2;

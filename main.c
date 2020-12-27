@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include "parser.h"
 #include "interpreter.h"
+#include "GUI.h"
 #if defined( _WIN32 )
 #pragma warning(disable:4996)
 #endif
@@ -13,6 +14,7 @@ void getOffSets(); //funkcja obliczaj¹ca przesuniêcia dla elementów kodu zawiera
 int main(int argc, char* argv[]) {
     FILE* input = NULL; //sprawdzenie poprawnoœci œcie¿ki lub wczytanie jej
     char path[MAX_PATH_LEN];
+    char path1[MAX_PATH_LEN];
     int psa_or_msc=0; //0-psa 1-msc
     int isDebug = 0;
     if (argc == 1) {
@@ -41,10 +43,12 @@ int main(int argc, char* argv[]) {
         parse(path);
         getOffSets();
         writeOutputToFile();
+        strcpy(path1, path);
         memset(path, 0, sizeof(path));
         strcpy(path, "output.txt");
     }
-    parse_machine_code(path); 
+    parse_machine_code(path,isDebug,path1); 
+    
 
 
     

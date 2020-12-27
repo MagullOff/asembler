@@ -8,10 +8,7 @@
 
 void getOffSets(); //funkcja obliczaj¹ca przesuniêcia dla elementów kodu zawieraj¹cych etykiety
 void getOrderHex(char c1, char c2);
-int isDigit(char c) { //sprawdza czy dany char to cyfra
-    if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9') return 1;
-    return 0;
-}
+
 void read_file(char* fileName) { //odczytuje plik i ka¿d¹ liniê wstawia do osobnego rzêdu w kwadratowej tablicy charów
     char temp_string[MAX_LEN_LINE];
     int i = 0;

@@ -2,16 +2,14 @@
 #include<string.h>
 #include<stdlib.h>
 #include "parser.h"
+#include "interpreter.h"
 #if defined( _WIN32 )
 #pragma warning(disable:4996)
 #endif
 
 void getOffSets(); //funkcja obliczaj¹ca przesuniêcia dla elementów kodu zawieraj¹cych etykiety
 void getOrderHex(char c1, char c2);
-int isDigit(char c) { //sprawdza czy dany char to cyfra
-    if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9') return 1;
-    return 0;
-}
+
 void read_file(char* fileName) { //odczytuje plik i ka¿d¹ liniê wstawia do osobnego rzêdu w kwadratowej tablicy charów
     char temp_string[MAX_LEN_LINE];
     int i = 0;
@@ -52,11 +50,12 @@ void parse(char* fileName) {
 }
 
 void clear_temp() { //"czyœcimy" struct tempRow który jest zwracany w funkcjach parsuj¹cych linie. Bez tego w niektórych przypadkach pojawiaj¹ siê b³êdy
-    strncpy(tempRow.label, "", strlen(tempRow.label));
-    strncpy(tempRow.order, "", strlen(tempRow.order));
-    strncpy(tempRow.line, "", strlen(tempRow.line));
-    strncpy(tempRow.arg1, "", strlen(tempRow.arg1));
-    strncpy(tempRow.arg2, "", strlen(tempRow.arg2));
+    memset(tempRow.label, 0, sizeof(tempRow.label));
+    memset(tempRow.order, 0, sizeof(tempRow.order));
+    memset(tempRow.line, 0, sizeof(tempRow.line));
+    memset(tempRow.arg1, 0, sizeof(tempRow.arg1));
+    memset(tempRow.arg2, 0, sizeof(tempRow.arg2));
+
     return;
 }
 

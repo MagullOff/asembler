@@ -34,3 +34,4 @@ struct ROW parse_memory_row(char* row); //funkcja dziel�ca linie sekcji danych
 struct ROW parse_order_row(char* row); //funkcja dziel�ca linie sekcji rozkaz�w na poszczeg�lne elementy
 void read_file(char* fileName); //funkcja wczytuj�ca zawarto�� pliku do tablicy 2-wymiarowej
 void parse(char* fileName);
+

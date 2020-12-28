@@ -8,7 +8,7 @@
 #if defined( _WIN32 )
 #pragma warning(disable:4996)
 #endif
-void parse_machine_code(char* fileName, int isDebug, int psa_or_msc,char *filename1) {
+void parse_machine_code(char* fileName, int isDebug, int psa_or_msc,char *filename1) { //spaja cly proces interpretacji, odczytania z pliku i wypisania do pliku
 	int memory_amount = 0; //ilosc zarezerwowanej pamieci
 	int order_amount = 0; //ilosc pamieci na rozkazy
     int registers[16];
@@ -44,7 +44,7 @@ void parse_machine_code(char* fileName, int isDebug, int psa_or_msc,char *filena
     return;
 }
 
-int getStep(int i, char order[]) {
+int getStep(int i, char order[]) { // sprawdza na ktorym rozkazie jestesmy
     int step = 0;
     int j = 0;
     for (; j < i; step++) {
@@ -61,7 +61,7 @@ int isDigitOrLetter(char c) { //sprawdza czy dany char to cyfra lub litera
     if (((int)c >= (int)('0') && (int)c <= (int)('9')) || ((int)c >= (int)('A') && (int)c <= (int)('Z')) || c == '~') return 1;
     else return 0;
 }
-void interpret(char memory[], char order[], int memory_amount, int order_amount, int registers[],int isDebug) {
+void interpret(char memory[], char order[], int memory_amount, int order_amount, int registers[],int isDebug) { //funkcja interpretujaca kod
     int i = 0;
     int step = 0;
     int x = 0,y=0;
@@ -91,11 +91,11 @@ void interpret(char memory[], char order[], int memory_amount, int order_amount,
     
 }
 
-int hexToDec1(char c) {
+int hexToDec1(char c) { //zamiana liczby jednocyfrowej w systemie 16 na system 10
     if ((int)(c) <= '9') return (int)(c)-(int)('0');
     else return 10 + ((int)(c)-(int)('A'));
 }
-int hexToDec4(char c1, char c2, char c3, char c4) {
+int hexToDec4(char c1, char c2, char c3, char c4) {//zamiana z U2 na system 10 liczby 4cyfrowej
     int w = 0;
     w += hexToDec1(c4) + 16 * hexToDec1(c3) + 16 * 16 * hexToDec1(c2);
     if (hexToDec1(c1) >= 8) {
@@ -105,7 +105,7 @@ int hexToDec4(char c1, char c2, char c3, char c4) {
     }else w += (hexToDec1(c1)) * 16 * 16 * 16;
     return w;
 }
-int hexToDec8(char c1, char c2, char c3, char c4, char c5, char c6, char c7, char c8) {
+int hexToDec8(char c1, char c2, char c3, char c4, char c5, char c6, char c7, char c8) { //zamiana z U2 na system 10 liczby 8cyfrowej
     int w = 0;
     w += hexToDec1(c8) + 16 * hexToDec1(c7) + 16 * 16 * hexToDec1(c6) + 16 * 16 * 16 * hexToDec1(c5) + 16 * 16 * 16 * 16 * hexToDec1(c4) + 16 * 16 * 16 * 16 * 16 * hexToDec1(c3)+16 * 16 * 16 * 16 * 16 * 16 * hexToDec1(c2);
     if (hexToDec1(c1) >= 8) {
@@ -115,7 +115,7 @@ int hexToDec8(char c1, char c2, char c3, char c4, char c5, char c6, char c7, cha
     else w += (hexToDec1(c1)) * 16 * 16 * 16 * 16 * 16 * 16 * 16;
     return w;
 }
-int analyze4order(char c1, char c2, char c3, char c4, int registers[], int state) {
+int analyze4order(char c1, char c2, char c3, char c4, int registers[], int state) { //funkcja analizujaca rozkaz 2-bajtowy
     int g = state;
     if (c1 == '3') { //LR
         registers[hexToDec1(c3)] = registers[hexToDec1(c4)];
@@ -161,7 +161,7 @@ int analyze4order(char c1, char c2, char c3, char c4, int registers[], int state
     
     return g;
 }
-int analyze8order(char c1, char c2, char c3, char c4, char c5, char c6, char c7, char c8, int registers[],char memory[],int state) {
+int analyze8order(char c1, char c2, char c3, char c4, char c5, char c6, char c7, char c8, int registers[],char memory[],int state) { //funkcja analizujaca rozkaz 4-bajtowy
     int real_offset = hexToDec4(c5, c6, c7, c8);
     int offset = 2 * real_offset;
     int offset1 = 2 * registers[hexToDec1(c4)] + offset;
@@ -248,7 +248,7 @@ int analyze8order(char c1, char c2, char c3, char c4, char c5, char c6, char c7,
     return g;
 }
 
-void count_memory(int* mem_pointer, int* order_pointer, char* fileName) {
+void count_memory(int* mem_pointer, int* order_pointer, char* fileName) {//policzenie ilosci pamieci potrzebnej do zarezerwowania na dane i rozkazy
     int memory_amount = 0; 
     int order_amount = 0; 
     char temp_string[15];
@@ -270,7 +270,7 @@ void count_memory(int* mem_pointer, int* order_pointer, char* fileName) {
     *mem_pointer = memory_amount;
     return;
 }
-void write_to_string(char memory[], char order[], int memory_amount, int order_amount, char* fileName) {
+void write_to_string(char memory[], char order[], int memory_amount, int order_amount, char* fileName) { //przepisanie ciagow danych i rozkazow na osobne ciagi znakow
     FILE* sourceFile;
     char temp_string[15];
     sourceFile = fopen(fileName, "r");
@@ -300,11 +300,11 @@ void write_to_string(char memory[], char order[], int memory_amount, int order_a
     orderRowAmount = x;
     fclose(sourceFile);
 }
-void writeInterpretedOutput(char memory[], char order[], int memory_amount, int order_amount) {
+void writeInterpretedOutput(char memory[], char order[], int memory_amount, int order_amount) { //zapisanie wyniku zinterpretowanego programu
     int h = 0;
     int i = 0;
     FILE* outputFile;
-    outputFile = fopen("output1.txt", "w");
+    outputFile = fopen("result.txt", "w");
     for (h = 0; h < memory_amount; h += 8) {
         fprintf(outputFile, "%c%c %c%c %c%c %c%c\n", memory[h], memory[h + 1], memory[h + 2], memory[h + 3], memory[h + 4], memory[h + 5], memory[h + 6], memory[h + 7]);
     }

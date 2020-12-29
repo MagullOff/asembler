@@ -26,6 +26,7 @@ WINDOW* counter_border, * counter_content,*counter_title;
 
 
 int PSA;
+int currentMemStart = 0;
 
 void createWinWithBorder(WINDOW** window, int h, int w, int y, int x) //tworzy ramke
 {
@@ -40,24 +41,42 @@ void actualizeGUI(char order[], char memory[], int registers[], int step, int me
 	writePSAandMSCK(step, order);
 	refreshRegisters(registers);
 	writeState(state);
-	highlight(order, step, registers);
+	highlight(order, step, registers, state);
 	wrefresh(register_content);
 	wrefresh(psa_content);
 	wrefresh(msck_content);
 	wrefresh(memory_content);
 	wrefresh(sign_content);
+	wrefresh(counter_content);
 	while (1) {
 		c = getchar();
-		if (c == (int)('n')) break;
-		if (c == (int)('q')) exit(NULL);
+		if (c == (int)('n') || c == (int)('N')) break;
+		if (c == (int)('q') || c == (int)('Q')) exit(NULL);
+		if (c == (int)('m') || c == (int)('M')) printMemory(memory);
+		if (c == (int)('1')) {
+			currentMemStart = max(0, currentMemStart - 1);
+			writeMemory(memory, memoryAmount);
+			highlight(order, step, registers, state);
+			wrefresh(memory_content);
+		}
+		if (c == (int)('2')) {
+			currentMemStart++;
+			writeMemory(memory, memoryAmount);
+			highlight(order, step, registers, state);
+			wrefresh(memory_content);
+		}
+
 	}
 }
 void writeMemory(char memory[],int memoryAmount) { //aktualizuje pamiec
 	int i = 0,j=0;
-	for (; i < min(30, memoryAmount / 8); i++) {
+	for(i = 0; i < 30; i++) {
 		mvwprintw(memory_content, i, 0, "                             ");
-		mvwprintw(memory_content, i, 1, "%3d: %s", j / 2, ROW_ARRAY[i].label);
-		mvwprintw(memory_content, i, 15, " %c%c %c%c %c%c %c%c", memory[j], memory[j + 1], memory[j + 2], memory[j + 3], memory[j + 4], memory[j + 5], memory[j + 6], memory[j + 7]);
+	}
+	for (i=currentMemStart; i < min(30+currentMemStart, memoryAmount / 8); i++) {
+		
+		mvwprintw(memory_content, i-currentMemStart, 1, "%3d: %s", j / 2, ROW_ARRAY[i].label);
+		mvwprintw(memory_content, i-currentMemStart, 15, " %c%c %c%c %c%c %c%c", memory[j], memory[j + 1], memory[j + 2], memory[j + 3], memory[j + 4], memory[j + 5], memory[j + 6], memory[j + 7]);
 		j += 8;
 	}
 }
@@ -206,12 +225,46 @@ void writeState(int state) { //aktualizuje znak ostatniej operacji
 	if (state == -1) mvwprintw(sign_content, 0, 1, "10");
 	if (state >1||state<-1) mvwprintw(sign_content, 0, 1, "11");
 }
-void highlight(char order[], int step, int registers[]) { //podswietla odpowiednie miejsca w rejestrach i pamieci
+void actualizeStateRegister(char order[], int index, int state) {
+	int offset=4+index/2;
+	int x;
+	char c[14];
+	if (state == 0) mvwprintw(counter_content, 0, 1, "00 00 00 00");
+	if (state == 1) mvwprintw(counter_content, 0, 1, "00 00 40 00");
+	if (state == -1) mvwprintw(counter_content, 0, 1, "00 00 80 00");
+	if (state > 1 || state < -1) mvwprintw(counter_content, 0, 1, "00 00 C0 00");
+	if (order[index] == 'E') {
+		x= hexToDec4(order[index+4], order[index+5], order[index+6], order[index+7]);
+		switch (order[index+1]) {
+		case '0': //J
+			offset = x;
+			break;
+		case '1': //JZ
+			if (state == 0) offset = x;
+			break;
+		case '2': //JP
+			if (state > 0) offset = x;
+			break;
+		case '3': //JN
+			if (state < 0) offset = x;
+			break;
+		}
+	}
+	else {
+		if (isDigit(order[index])) offset = 2+index/2;
+		else offset = 4+index/2;
+	}
+	offset += memRowAmount * 4;
+	sprintf(c, "%08X", offset);
+	mvwprintw(counter_content,0,13, "%c%c %c%c %c%c %c%c\n", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
+}
+void highlight(char order[], int step, int registers[], int state) { //podswietla odpowiednie miejsca w rejestrach i pamieci
 	int i = 0,j=0;
 	for (i = 0; i < step; i++) {
 		if (isDigit(order[j])) j += 4;
 		else j += 8;
 	}
+	actualizeStateRegister(order, j, state);
 	if (isDigit(order[j]) == 1) {
 		highlightRegister(hexToDec1(order[j+2]), 1);
 		highlightRegister(hexToDec1(order[j + 3]), 2);
@@ -222,11 +275,11 @@ void highlight(char order[], int step, int registers[]) { //podswietla odpowiedn
 			highlightRegister(hexToDec1(order[j + 2]), 1);
 			if (order[j+3] == 'F') {
 				highlightRegister(15, 2);
-				highlightMemory(hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])/4,2);
+				highlightMemory(hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])/4 - currentMemStart,2);
 			}
 			else {
 				highlightRegister(hexToDec1(order[j + 3]), 2);
-				highlightMemory((registers[hexToDec1(order[j + 3])]+hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])) / 4, 2);
+				highlightMemory((registers[hexToDec1(order[j + 3])]+hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])) / 4-currentMemStart, 2);
 			}
 			break;
 		case 'E':
@@ -237,22 +290,22 @@ void highlight(char order[], int step, int registers[]) { //podswietla odpowiedn
 				highlightRegister(hexToDec1(order[j + 2]), 1);
 				if (order[j + 3] == 'F') {
 					highlightRegister(15, 2);
-					highlightMemory(hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7]) / 4, 2);
+					highlightMemory(hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7]) / 4-currentMemStart, 2);
 				}
 				else {
 					highlightRegister(hexToDec1(order[j + 3]), 2);
-					highlightMemory((registers[hexToDec1(order[j + 3])] + hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])) / 4, 2);
+					highlightMemory((registers[hexToDec1(order[j + 3])] + hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])) / 4-currentMemStart, 2);
 				}
 			}
 			else {
 				highlightRegister(hexToDec1(order[j + 2]), 2);
 				if (order[j + 3] == 'F') {
 					highlightRegister(15, 1);
-					highlightMemory(hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7]) / 4, 1);
+					highlightMemory(hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7]) / 4-currentMemStart, 1);
 				}
 				else {
 					highlightRegister(hexToDec1(order[j + 3]), 1);
-					highlightMemory((registers[hexToDec1(order[j + 3])] + hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])) / 4, 1);
+					highlightMemory((registers[hexToDec1(order[j + 3])] + hexToDec4(order[j + 4], order[j + 5], order[j + 6], order[j + 7])) / 4-currentMemStart, 1);
 				}
 			}
 			break;
@@ -314,7 +367,8 @@ void printStaticText(char* filename, char* filenameM) { //drukuje caly tekst kto
 	mvwprintw(top_content, 0, 0, "INTERPRETER PSEUDOASEMBLERA!");
 	if (PSA) mvwprintw(top_content, 1, 0, "interpretuje program: %s", filename);
 	else mvwprintw(top_content, 1, 0, "interpretuje program: %s", filenameM);
-	mvwprintw(top_content, 2, 0, "'q'-wyjdz z programu, 'n'-nastepny krok, 't'-wierszowany tutorial");
+	mvwprintw(top_content, 2, 0, "'Q'-wyjdz z programu, 'N'-nastepny krok, 'M'-druk pamieci");
+	mvwprintw(top_content, 3, 0, "'1','2'-przewijanie sekcji pamieci");
 }
 void initWindows() { //inicjalizuje obiekty typu WINDOW
 	psa_title = newwin(1, PSA_WIDTH + 2, 7, 1);
@@ -329,6 +383,7 @@ void initWindows() { //inicjalizuje obiekty typu WINDOW
 	msck_content = newwin(HEIGHT, MSCK_WIDTH, LEVEL, PSA_WIDTH+5);
 	memory_content = newwin(HEIGHT, MEMORY_WIDTH, LEVEL, PSA_WIDTH+ MSCK_WIDTH+8);
 	sign_content = newwin(1, 4, 4, total_width - 7);
+	counter_content = newwin(1, 25, 4, total_width - 37);
 }
 void refreshALL() { //odswierza potrzebne elementy
 	refresh();

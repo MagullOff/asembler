@@ -7,6 +7,7 @@ char row_string[MAX_ROW_AMOUNT][MAX_LEN_LINE]; //tablica przechowuj�ca w jedny
 int lineAmount; //ilo�� linii
 int memRowAmount; //ilo�� linii w sekcji danych
 int orderRowAmount; //ilo�� linii w sekcji rozkaz�w
+
 struct ROW { //struct ten reprezentuje ka�d� linie programu i przechowywane s� w nim jej cz�ci
     int type; //0-dane 1-rozkazy
     char label[MAX_LEN_ETYKIETA];

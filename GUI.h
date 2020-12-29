@@ -15,6 +15,6 @@ void writePSAandMSCK(int step, char order[]);
 void writeState(int state);
 void highlightRegister(int n, int option);
 void highlightMemory(int n, int option);
-void highlight(char order[], int step, int registers[]);
+void highlight(char order[], int step, int registers[], int state);
 //funkcja konczaca prace srodowiska graficznego
 void endGUI();

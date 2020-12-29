@@ -21,3 +21,5 @@ int getStep(int i, char order[]);
 
 int isDigit(char c);
 int isDigitOrLetter(char c);
+
+void printMemory(char memory[]);

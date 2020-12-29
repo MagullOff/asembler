@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#include"GUI.h";
+#include "GUI.h"
 #include "interpreter.h"
 #include "parser.h"
 
@@ -24,8 +24,8 @@ void parse_machine_code(char* fileName, int isDebug, int psa_or_msc,char *filena
     char *order = (char*)malloc(order_amount * sizeof(char)+1);
     memory[memory_amount+8] = '\0';
     order[order_amount] = '\0';
-    
-    write_to_string(memory, order, memory_amount, order_amount, fileName, registers);
+    memRowAmount = memory_amount / 8;
+    write_to_string(memory, order, memory_amount, order_amount, fileName);
     if (isDebug == 1) initGUI(memory, order, memory_amount, order_amount, filename1,fileName, registers,psa_or_msc);
     i = 0;
     interpret(memory, order, memory_amount, order_amount, registers, isDebug);
@@ -34,16 +34,25 @@ void parse_machine_code(char* fileName, int isDebug, int psa_or_msc,char *filena
     if (isDebug) {
         while (1) {
             c = getchar();
-            if (c == (int)('q')) {
+            if (c == (int)('q') || c == (int)('Q')) {
                 endGUI();
                 break;
             }
+            if (c == (int)('m') || c == (int)('M')) printMemory(memory);
+	
         }
     }
-    
     return;
 }
-
+void printMemory(char memory[]) {
+    int i = 0, j = 0;
+    for (; i < memRowAmount; i++) {
+        printf("%4d: %s", i * 4, ROW_ARRAY[i].label);
+        for (j = 0; j < 11 - strlen(ROW_ARRAY[i].label); j++) printf(" ");
+        printf("%c%c %c%c %c%c %c%c\n", memory[i * 8], memory[i * 8 + 1], memory[i * 8 + 2], memory[i * 8 + 3], memory[i * 8 + 4], memory[i * 8 + 5], memory[i * 8 + 6], memory[i * 8 + 7]);
+    }
+    printf("\n");
+}
 int getStep(int i, char order[]) { // sprawdza na ktorym rozkazie jestesmy
     int step = 0;
     int j = 0;
@@ -66,7 +75,6 @@ void interpret(char memory[], char order[], int memory_amount, int order_amount,
     int step = 0;
     int x = 0,y=0;
     int state = 0;
-    int h;
     while (i < order_amount-7) {
         x++;
         if(isDebug==1) actualizeGUI(order,memory,registers,getStep(i,order),memory_amount,state);
@@ -110,7 +118,7 @@ int hexToDec8(char c1, char c2, char c3, char c4, char c5, char c6, char c7, cha
     w += hexToDec1(c8) + 16 * hexToDec1(c7) + 16 * 16 * hexToDec1(c6) + 16 * 16 * 16 * hexToDec1(c5) + 16 * 16 * 16 * 16 * hexToDec1(c4) + 16 * 16 * 16 * 16 * 16 * hexToDec1(c3)+16 * 16 * 16 * 16 * 16 * 16 * hexToDec1(c2);
     if (hexToDec1(c1) >= 8) {
         w += (hexToDec1(c1) - 8) * 16 * 16 * 16 * 16 * 16 * 16 * 16;   
-        w -= 2147483648;
+        w -= 2147483648; 
     }
     else w += (hexToDec1(c1)) * 16 * 16 * 16 * 16 * 16 * 16 * 16;
     return w;
@@ -172,6 +180,8 @@ int analyze8order(char c1, char c2, char c3, char c4, char c5, char c6, char c7,
     
     switch (c1) {
     case 'D':
+        if (c4 == 'F' && offset > memRowAmount * 8) exit(0);
+        if (c4 != 'F' && offset1 > memRowAmount * 8) exit(0);
         switch (c2) {
         case '1': //A
             if(c4=='F') registers[hexToDec1(c3)] += hexToDec8(memory[offset], memory[offset + 1], memory[offset + 2], memory[offset + 3], memory[offset + 4], memory[offset + 5], memory[offset + 6], memory[offset + 7]);
@@ -222,6 +232,8 @@ int analyze8order(char c1, char c2, char c3, char c4, char c5, char c6, char c7,
     case 'F':
         switch (c2) {
         case '0': //L
+            if (c4 == 'F' && offset > memRowAmount * 8) exit(0);
+            if (c4 != 'F' && offset1 > memRowAmount * 8) exit(0);
             if (c4 == 'F') registers[hexToDec1(c3)] = hexToDec8(memory[offset], memory[offset + 1], memory[offset + 2], memory[offset + 3], memory[offset + 4], memory[offset + 5], memory[offset + 6], memory[offset + 7]);
             else registers[hexToDec1(c3)] = hexToDec8(memory[offset1], memory[offset1 + 1], memory[offset1 + 2], memory[offset1 + 3], memory[offset1 + 4], memory[offset1 + 5], memory[offset1 + 6], memory[offset1 + 7]);
             break;
@@ -229,6 +241,8 @@ int analyze8order(char c1, char c2, char c3, char c4, char c5, char c6, char c7,
             registers[hexToDec1(c3)] = real_offset;
             break;
         case '3': //ST
+            if (c4 == 'F' && offset > memRowAmount * 8) exit(0);
+            if (c4 != 'F' && offset1 > memRowAmount * 8) exit(0);
             sprintf(tab, "%08X", registers[hexToDec1(c3)]);
             if (c4 == 'F') {
                 for (j = 0; j < 8; j++) {
